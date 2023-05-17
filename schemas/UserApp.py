@@ -1,5 +1,11 @@
+from classes.Constants import ExternalMessages as ext
 from pydantic import BaseModel, EmailStr, Field
+from email_validator import validate_email, EmailNotValidError
+from classes.Tools import Tools
 from datetime import datetime
+from fastapi import status
+
+
 
 
 
@@ -20,7 +26,7 @@ class UserAppComplete(BaseModel):
         orm_mode = True
         
     def createUserCompletDict(id_usuario: int, nombre_us: str, apellido_us: str, nick_us: str, email_us: str, contrasena: str, id_cont: int, estado_us: str = "1", rol_us: str = "0") -> dict:
-        newUserCompleteDict = UserAppComplete()
+        UserAppComplete.validateUserMailComposition(email_us)
         newUserCompleteDict = {
             "id_usuario": id_usuario,
             "nombre_us": nombre_us,
@@ -35,6 +41,13 @@ class UserAppComplete(BaseModel):
             "fecha_act": datetime.now()
         }
         return newUserCompleteDict
+    
+    def validateUserMailComposition(email_us: str) -> None:
+        try:
+            validate_email(email_us)
+        except EmailNotValidError:
+            raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.GENERIC_USER_UPDATE_ERROR)
+
 
 
 class UserAppBasic(BaseModel):

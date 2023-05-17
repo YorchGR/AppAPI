@@ -68,11 +68,12 @@ async def updateUser(user: Annotated[UserDb, Depends(JwtToken.authUserToken)], n
         updatedPassword = PasswDb(user.id_cont, user.id_usuario, currentPassword) 
         updatedPassword.updateUserContrasena(passwForm)
         userComplete = UserAppComplete.createUserCompletDict(updatedUser.id_usuario, updatedUser.nombre_us, updatedUser.apellido_us, updatedUser.nick_us, updatedUser.email_us, updatedPassword.contrasena, updatedPassword.id_cont)
-        jwToken = refreshToken(updatedUser)
         updateUserAndPasswordInDataBase(updatedUser, updatedPassword)
+        jwToken = refreshToken(updatedUser)  
+        responseData = getResponseDataUserUpdate(userComplete, jwToken)
     else:
         raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.GENERIC_ERROR)     
-    return getResponseDataUserUpdate(userComplete, jwToken)
+    return responseData
 
 
 def getResponseDataUserUpdate(userComplete: UserAppComplete, jwToken:JwtToken) -> dict:

@@ -14,6 +14,7 @@ class InternalConstants(str, Enum):
     
 class ExternalMessages(str, Enum):
     GENERIC_ERROR = "Se ha producido un error."
+    GENERIC_USER_UPDATE_ERROR = "Se ha producido un error actualizando al usuario."
     INVALID_CREDENTIALS = "Credenciales no válidas."
     INVALID_PASSWORD = "La contraseña no es correcta."
     REGISTRED_USER = "Usuario registrado."
