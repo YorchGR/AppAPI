@@ -1,6 +1,6 @@
 from classes.Constants import InternalConstants as const
 from classes.Constants import ExternalMessages as ext
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, status, Depends, Request
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
 from dbConector import DbConector
@@ -23,10 +23,10 @@ class AccessToken:
 class JwtToken:
     def __init__(self, access_token: AccessToken):
         self.jwtDict= {}
-        self.jwtDict["access_token"] = JwtToken.getAccessToken(access_token)
+        self.jwtDict["access_token"] = JwtToken.createAccessToken(access_token)
         self.jwtDict["token_type"] = "bearer"
 
-    def getAccessToken(access_token: AccessToken) -> str:
+    def createAccessToken(access_token: AccessToken) -> str:
         accessToken = jwt.encode(access_token.ATDict, config(const.JWT_SK), algorithm = config(const.ALGORITHM))
         return accessToken
     

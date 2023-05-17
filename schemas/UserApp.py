@@ -7,8 +7,6 @@ from fastapi import status
 
 
 
-
-
 class UserAppComplete(BaseModel):
     id_usuario: int | None = Field(example = 5)
     nombre_us: str | None = Field(min_length = 3, max_length = 50, example = "Jorge")
@@ -41,12 +39,12 @@ class UserAppComplete(BaseModel):
             "fecha_act": datetime.now()
         }
         return newUserCompleteDict
-    
+        
     def validateUserMailComposition(email_us: str) -> None:
         try:
             validate_email(email_us)
         except EmailNotValidError:
-            raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.GENERIC_USER_UPDATE_ERROR)
+            raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.INVALID_MAIL_ERROR)
 
 
 

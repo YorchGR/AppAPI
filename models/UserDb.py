@@ -56,13 +56,29 @@ class UserDb(Base):
                 self.nick_us = nickForm
         return self.nick_us    
     
-    def updateUserMail(self, emailForm: str) ->str:
+    def updateUserMail(self, emailForm: str) -> str:
         if emailForm != None or emailForm != '':
             if emailForm != self.email_us:
                 checkNick(emailForm)
                 self.email_us = emailForm
         return self.email_us  
+    
+    def updateUserState(self, estado_us: str) -> None:
+            self.estado_us = estado_us
+        
+    def completeUserData(self) -> None:
+        if not self:
+            raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.INVALID_CREDENTIALS)
+        passwd = getPasswDbByIdUser(self.id_cont)
+        self.contrasena = passwd.contrasena
 
+def checkUserActive(user: UserDb) -> None:
+    if user.estado_us == 0:
+        raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.DISABLED_USER)
+ 
+def checkUserAdmin(user: UserDb) -> None:
+    if user.rol_us != 1:
+        raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.INVALID_USER_ROL)    
 
 def getUserByIdForm(id: str) -> UserDb:
     user = session.query(UserDb).get(id)
@@ -74,15 +90,7 @@ def getUserDbbyUserName(userName: str) -> UserDb:
     user = session.query(UserDb).filter(UserDb.nick_us == userName).first()
     if not user:
         raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.INVALID_USER_NAME)
-    elif user.estado_us == '0':
-        raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.DISABLED_USER)
-    return user
-
-def completeUserData(user: UserDb) -> UserDb:
-    if not user:
-        raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.INVALID_CREDENTIALS)
-    passwd = getPasswDbByIdUser(user.id_cont)
-    user.contrasena = passwd.contrasena
+    checkUserActive(user)
     return user
 
 def checkMail(emailForm: str) -> None:
