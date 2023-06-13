@@ -1,11 +1,12 @@
+from sqlalchemy import Column, Integer, String, DateTime, cast, String, func
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, DateTime
-from classes.Tools import Tools
-from fastapi import status
-from datetime  import datetime
-from dbConector import DbConector
-from models.PasswDb import getPasswDbByIdUser
 from classes.Constants import ExternalMessages as ext
+from models.PasswDb import getPasswDbByIdUser
+from dbConector import DbConector
+from classes.Tools import Tools
+from datetime  import datetime
+from fastapi import status
+
 
 Base = declarative_base()
 db = DbConector.getInstance()
@@ -25,7 +26,7 @@ class UserDb(Base):
     fecha_alta = Column("fecha_alta", DateTime(), nullable = False, default = datetime.now())
     fecha_act = Column("fecha_act", DateTime(), nullable = False, default = datetime.now())
     
-    def __init__(self, id_usuario: int, nombre_us: str, apellido_us: str, nick_us: str, email_us: str, id_cont: int, rol_us: int = 0, estado_us: str = 1):
+    def __init__(self, id_usuario: int, nombre_us: str, apellido_us: str, nick_us: str, email_us: str, id_cont: int, fecha_alta:datetime = None,  rol_us: int = 0, estado_us: str = 1):
         self.id_usuario = id_usuario
         self.nombre_us = nombre_us
         self.apellido_us = apellido_us
@@ -34,7 +35,7 @@ class UserDb(Base):
         self.id_cont = id_cont
         self.rol_us = rol_us
         self.estado_us = estado_us
-        self.fecha_alta = datetime.now()
+        self.fecha_alta = fecha_alta or datetime.now()
         self.fecha_act = datetime.now()
 
     def updateUserNombre(self, nombreForm: str) ->str:
@@ -59,38 +60,45 @@ class UserDb(Base):
     def updateUserMail(self, emailForm: str) -> str:
         if emailForm != None or emailForm != '':
             if emailForm != self.email_us:
-                checkNick(emailForm)
+                checkMail(emailForm)
                 self.email_us = emailForm
         return self.email_us  
     
     def updateUserState(self, estado_us: str) -> None:
             self.estado_us = estado_us
         
+    def updateFechaAct(self) -> None:
+        self.fecha_act = datetime.now()   
+    
     def completeUserData(self) -> None:
-        if not self:
+        if self is None:
             raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.INVALID_CREDENTIALS)
         passwd = getPasswDbByIdUser(self.id_cont)
         self.contrasena = passwd.contrasena
 
-def checkUserActive(user: UserDb) -> None:
-    if user.estado_us == 0:
-        raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.DISABLED_USER)
- 
-def checkUserAdmin(user: UserDb) -> None:
-    if user.rol_us != 1:
-        raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.INVALID_USER_ROL)    
+    def checkUserActive(self) -> None:
+        if self.estado_us == 0:
+            raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.DISABLED_USER)
+    
+    def checkUserAdmin(self) -> None:
+        if self.rol_us != 1:
+            raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.INVALID_USER_ROL)    
+    
+    def invalidDisabledAdmin(self) -> None:
+        if self.rol_us == 1:
+            raise Tools.getRaise(status.HTTP_401_UNAUTHORIZED, ext.INVALID_DISABLE_ADMIN)   
 
-def getUserByIdForm(id: str) -> UserDb:
+def getUserByIdForm(id: int) -> UserDb:
     user = session.query(UserDb).get(id)
-    if not user:
-        raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.REGISTRED_USER)
+    if user is None:
+        raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.INVALID_USER_ID)
     return user
 
 def getUserDbbyUserName(userName: str) -> UserDb:
     user = session.query(UserDb).filter(UserDb.nick_us == userName).first()
-    if not user:
+    if user is None:
         raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.INVALID_USER_NAME)
-    checkUserActive(user)
+    user.checkUserActive()
     return user
 
 def checkMail(emailForm: str) -> None:

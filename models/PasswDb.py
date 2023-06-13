@@ -17,7 +17,7 @@ db = DbConector.getInstance()
 session = db.getSession()
 
 class PasswDb(Base):
-    __tablename__ = 'contrasena'
+    __tablename__ = 'CONTRASENA'
     id_cont = Column("id_cont", Integer(), nullable = False, unique = True)
     __mapper_args__ = {"primary_key":id_cont}
     id_usuario = Column("id_usuario", Integer(), unique = True)
@@ -41,7 +41,7 @@ class PasswDb(Base):
     def encryptPassword(password: str) -> str:
         return bcrypt.hash(password)
         
-def getPasswDbByIdUser(id: int) -> PasswDb:
+def getPasswDbByIdUser(id: str) -> PasswDb:
     userPass = session.query(PasswDb).filter(PasswDb.id_usuario == id).first()
     if not userPass:
         raise Tools.getRaise(status.HTTP_400_BAD_REQUEST, ext.INVALID_PASSWORD) 

@@ -1,6 +1,6 @@
 from classes.Constants import InternalConstants as const
 from classes.Constants import ExternalMessages as ext
-from fastapi import HTTPException, status, Depends, Request
+from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
 from dbConector import DbConector
@@ -15,9 +15,9 @@ db = DbConector.getInstance()
 session = db.getSession()
 
 class AccessToken:
-   def __init__(self, nick: any, exp: any):
+   def __init__(self, id_user: any, exp: any):
       self.ATDict = {}
-      self.ATDict["nick"] = nick
+      self.ATDict["id_user"] = id_user
       self.ATDict["exp"] = exp
 
 class JwtToken:
@@ -36,15 +36,15 @@ class JwtToken:
                 detail =  ext.INVALID_CREDENTIALS,
                 headers = {"WWW-Authenticate": "Bearer"})
         try:
-            userName = jwt.decode(jwToken, config(const.JWT_SK), algorithms = [config(const.ALGORITHM)]).get("nick")
-            if userName is None:
+            userId = jwt.decode(jwToken, config(const.JWT_SK), algorithms = [config(const.ALGORITHM)]).get(const.USER_JWT_PART)
+            if userId is None:
                 raise exception
-            user = session.query(UserDb).filter(UserDb.nick_us == userName).first()
+            user = session.query(UserDb).filter(UserDb.id_usuario == userId).first()
             return user
         except JWTError:
             raise exception
         
 def refreshToken(user: UserDb) -> JwtToken:
-    accessToken = AccessToken(user.nick_us, datetime.now() + timedelta(minutes = int(config(const.ACCESS_TOKEN_EXPIRE_MINUTES))))
+    accessToken = AccessToken(user.id_usuario, datetime.now() + timedelta(minutes = int(config(const.ACCESS_TOKEN_EXPIRE_MINUTES))))
     jwToken = JwtToken(accessToken)
     return jwToken

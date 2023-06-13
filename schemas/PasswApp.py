@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 
 
-
 class PasswApp(BaseModel):
     id_cont: int = Field(..., example = "5")
     id_usuario: int = Field(..., example = "1")

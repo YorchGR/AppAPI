@@ -6,7 +6,6 @@ from datetime import datetime
 from fastapi import status
 
 
-
 class UserAppComplete(BaseModel):
     id_usuario: int | None = Field(example = 5)
     nombre_us: str | None = Field(min_length = 3, max_length = 50, example = "Jorge")
